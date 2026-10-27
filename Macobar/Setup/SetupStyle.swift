@@ -20,7 +20,7 @@ enum SetupStyle {
     /// Space between the window edge and the content.
     static let margin: CGFloat = 56
 
-    /// The lowercase wordmark next to the mark.
+    /// The lowercase wordmark next to Macie.
     static let wordmarkFont = Font.system(size: 14, weight: .semibold)
     /// The one large serif headline.
     static let displayFont = Font.system(size: 44, weight: .regular, design: .serif)

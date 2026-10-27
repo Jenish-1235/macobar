@@ -61,10 +61,10 @@ struct MiniDockView: View {
             .frame(width: 2, height: Self.iconSize - 14)
     }
 
-    /// The chat field in miniature: the mark and its placeholder in a recessed capsule.
+    /// The chat field in miniature: Macie and the placeholder in a recessed capsule.
     private var miniField: some View {
         HStack(spacing: 8) {
-            MacobarMark(isWorking: false, isActive: true)
+            Macie(mood: .resting, size: 12, showsGround: false)
             Text("Tell your Mac what to do")
                 .font(SetupStyle.miniFieldFont)
                 .foregroundStyle(SetupStyle.ash)

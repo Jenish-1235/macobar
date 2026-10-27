@@ -14,7 +14,7 @@ struct SetupView: View {
                 .font(SetupStyle.displayFont)
                 .tracking(-0.9)
                 .padding(.top, 44)
-            Text("macobar lives in your Dock. Two steps and it's ready.")
+            Text("Meet Macie, the agent in your Dock. Two steps and it's ready.")
                 .font(SetupStyle.ledeFont)
                 .foregroundStyle(SetupStyle.ash)
                 .padding(.top, 12)
@@ -34,13 +34,19 @@ struct SetupView: View {
         .tint(SetupStyle.cream)
     }
 
-    /// The mark and lowercase wordmark; the dot bounces while waiting on System Settings.
+    /// Macie and the lowercase wordmark.
     private var brand: some View {
-        HStack(spacing: 10) {
-            MacobarMark(isWorking: model.isWaitingForAccessibility, isActive: true, scale: 1.4)
+        HStack(alignment: .bottom, spacing: 12) {
+            Macie(mood: macieMood, size: 20)
             Text("macobar")
                 .font(SetupStyle.wordmarkFont)
         }
+    }
+
+    /// Macie asks while waiting on System Settings and smiles once setup is done.
+    private var macieMood: Macie.Mood {
+        if model.isFinished { return .done }
+        return model.isWaitingForAccessibility ? .asking : .resting
     }
 
     /// The two numbered steps, separated by a hairline.
@@ -51,7 +57,7 @@ struct SetupView: View {
                 title: "Allow Accessibility",
                 detail: model.isWaitingForAccessibility
                     ? "Turn on macobar in Privacy & Security → Accessibility."
-                    : "Lets macobar find the Dock and, soon, work in your apps.",
+                    : "Lets Macie find the Dock and, soon, work in your apps.",
                 status: model.isAccessibilityGranted ? .done : .current,
                 actionTitle: model.isWaitingForAccessibility ? "Open Settings" : "Allow access",
                 doneTitle: "Allowed",

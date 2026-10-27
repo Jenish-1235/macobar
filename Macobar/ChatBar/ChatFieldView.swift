@@ -15,7 +15,9 @@ struct ChatFieldView: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            MacobarMark(isWorking: model.exchange?.isResponding == true, isActive: isActive)
+            Macie(mood: macieMood, size: 13, showsGround: false)
+                .frame(width: 18)
+                .opacity(macieMood == .resting ? 0.7 : 1)
             TextField("Tell your Mac what to do", text: $model.draft)
                 .textFieldStyle(.plain)
                 .font(ChatBarStyle.fieldFont)
@@ -40,6 +42,14 @@ struct ChatFieldView: View {
 
     /// Whether the field is focused in the key window.
     private var isActive: Bool { isFocused && activeState == .key }
+
+    /// Macie's mood: working while replying, listening while typing, then done or stuck once the reply ends.
+    private var macieMood: Macie.Mood {
+        guard let exchange = model.exchange else { return isActive ? .listening : .resting }
+        if exchange.isResponding { return .working }
+        if !model.draft.isEmpty { return .listening }
+        return exchange.failureMessage == nil ? .done : .stuck
+    }
 
     /// The recessed capsule the field sits in; its rim takes the accent colour while typing.
     private var well: some View {

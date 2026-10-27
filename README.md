@@ -1,6 +1,7 @@
 # macobar
 
 A persistent agent for macOS that you talk to from a text field living inside the Dock.
+macobar is the bar; **Macie** is the agent who lives in it.
 
 ## Build and run
 Requires Xcode 27+, macOS 26+, and [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`).
@@ -26,7 +27,7 @@ Right-click the field → **Quit macobar** to remove the gap and quit. If macoba
 | `Macobar/ChatBar` | The field in the Dock and the reply sheet above it |
 | `Macobar/Setup` | The one-screen setup window (Accessibility + Dock gap) |
 | `Macobar/Permissions` | Checks and requests Accessibility access |
-| `Macobar/Brand` | The macobar mark, shared by every screen |
+| `Macobar/Brand` | Macie, the character shared by every screen |
 | `MacobarTests` | Logic tests for pure code (no app launch) |
 
 Each folder has its own README. When a module changes, its README changes in the same edit.
