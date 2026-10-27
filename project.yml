@@ -41,6 +41,9 @@ targets:
       - MacobarTests
       - Macobar/Dock/DockGeometry.swift
       - Macobar/Dock/DockTiles.swift
+      - Macobar/Providers/ProviderKind.swift
+      - Macobar/Providers/ProviderAccount.swift
+      - Macobar/Providers/ProviderEndpoint.swift
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES

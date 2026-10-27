@@ -26,6 +26,7 @@ Right-click the field → **Quit macobar** to remove the gap and quit. If macoba
 | `Macobar/Dock` | Reserves the gap in the Dock and reports where it is |
 | `Macobar/ChatBar` | The field in the Dock and the reply sheet above it |
 | `Macobar/Setup` | The one-screen setup window (Accessibility + Dock gap) |
+| `Macobar/Providers` | Model providers, their endpoints, and credentials in the Keychain |
 | `Macobar/Permissions` | Checks and requests Accessibility access |
 | `Macobar/Brand` | Macie, the character shared by every screen |
 | `MacobarTests` | Logic tests for pure code (no app launch) |
