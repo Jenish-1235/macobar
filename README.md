@@ -29,6 +29,7 @@ Right-click the field → **Quit macobar** to remove the gap and quit. If macoba
 | `Macobar/Permissions` | Checks and requests Accessibility access |
 | `Macobar/Brand` | Macie, the character shared by every screen |
 | `MacobarTests` | Logic tests for pure code (no app launch) |
+| `site` | The landing page: static HTML/CSS/JS, no build step |
 
 Each folder has its own README. When a module changes, its README changes in the same edit.
 
