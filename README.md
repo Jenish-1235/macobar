@@ -10,13 +10,11 @@ make run    # generate the project, build, and launch
 make test   # run the logic tests
 ```
 
-On first launch macOS asks for **Accessibility** access (System Settings → Privacy & Security → Accessibility). macobar needs it to read where the Dock is.
-
-The first launch also restarts the Dock once to add an empty gap right after Finder; the chat field sits in that gap.
+On first launch a setup window walks through two steps: allowing **Accessibility** access (macobar needs it to read where the Dock is), and adding an empty gap right after Finder, which restarts the Dock once. The chat field sits in that gap.
 Right-click the field → **Quit macobar** to remove the gap and quit. If macobar is deleted without quitting, drag the empty spacers out of the Dock.
 
 ## How it works
-1. `Dock/` adds spacer tiles after Finder and reads their on-screen frame through Accessibility.
+1. `Setup/` asks for permission and has `Dock/` add spacer tiles after Finder; `Dock/` then reads their on-screen frame through Accessibility.
 2. `ChatBar/` pins a transparent panel with the text field exactly over that gap, and a reply sheet just above the Dock.
 3. `App/` wires the modules together. Replies come from a placeholder until the agent lands.
 
@@ -26,7 +24,9 @@ Right-click the field → **Quit macobar** to remove the gap and quit. If macoba
 | `Macobar/App` | Entry point and wiring; the only place concrete types meet |
 | `Macobar/Dock` | Reserves the gap in the Dock and reports where it is |
 | `Macobar/ChatBar` | The field in the Dock and the reply sheet above it |
+| `Macobar/Setup` | The one-screen setup window (Accessibility + Dock gap) |
 | `Macobar/Permissions` | Checks and requests Accessibility access |
+| `Macobar/Brand` | The macobar mark, shared by every screen |
 | `MacobarTests` | Logic tests for pure code (no app launch) |
 
 Each folder has its own README. When a module changes, its README changes in the same edit.

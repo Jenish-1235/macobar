@@ -10,7 +10,7 @@ Keeps an empty gap in the real macOS Dock and reports where it is on screen.
 - `DockProcess.swift`: finds and restarts the Dock process.
 
 ## Public surface
-- `DockGapReserver.reserveGap(width:)` / `releaseGap()`
+- `DockGapReserver.isGapReserved`, `reserveGap(width:)` / `releaseGap()`
 - `DockObserver.geometryUpdates() -> AsyncStream<DockGeometry?>` (nil while the Dock or gap isn't visible)
 
 ## Depends on

@@ -8,7 +8,6 @@ The text field pressed into the Dock gap and the glass reply sheet that rises ab
 - `ChatResponder.swift`: protocol for anything that answers a prompt (placeholder now, the agent later).
 - `ChatFieldView.swift`: the recessed capsule field, Return hint, Escape handling and Quit menu.
 - `ReplySheetView.swift`: the glass card showing the prompt and streamed reply; reports its size to its panel.
-- `MacobarMark.swift`: the brand mark, a dot resting on a bar that bounces like a launching app while the agent works.
 - `ChatBarStyle.swift`: every size, font, opacity and animation used above.
 
 ## Public surface
@@ -22,4 +21,4 @@ The text field pressed into the Dock gap and the glass reply sheet that rises ab
 - Escape once clears the draft, twice collapses the reply and returns focus. Clicking away collapses a finished reply.
 
 ## Depends on
-Dock (for `DockGeometry` only).
+Dock (for `DockGeometry` only), Brand (for the mark).

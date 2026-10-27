@@ -2,10 +2,11 @@
 Checks and requests the macOS privacy permissions macobar needs.
 
 ## Files
-- `AccessibilityPermission.swift`: reports whether Accessibility access is granted, shows the system prompt, and waits until it is.
+- `AccessibilityPermission.swift`: reports whether access is granted, shows the system prompt, opens the right System Settings pane, and waits for the grant.
 
 ## Public surface
 - `AccessibilityPermission.isGranted`
+- `AccessibilityPermission.requestAccess()`, `openSettings()`
 - `AccessibilityPermission.waitUntilGranted() async`
 
 ## Gotchas

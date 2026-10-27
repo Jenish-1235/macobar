@@ -12,6 +12,11 @@ struct DockGapReserver {
     /// Icon size macOS uses when the user never changed it.
     private static let defaultTileSize: CGFloat = 48
 
+    /// Whether the Dock already has the gap.
+    var isGapReserved: Bool {
+        DockTiles.leadingSpacerCount(in: currentTiles() ?? []) > 0
+    }
+
     /// Makes the gap wide enough for `width` points.
     func reserveGap(width: CGFloat) {
         setLeadingSpacers(count: Int((width / tileSize()).rounded(.up)))
@@ -25,12 +30,16 @@ struct DockGapReserver {
     /// Writes exactly `count` leading spacers, restarting the Dock only when something changed.
     private func setLeadingSpacers(count: Int) {
         // Never write when the read fails, or the user's pinned apps would be wiped.
-        guard let tiles = CFPreferencesCopyAppValue(Self.tilesKey as CFString, Self.dockDomain as CFString) as? [DockTiles.Tile],
-              DockTiles.leadingSpacerCount(in: tiles) != count else { return }
+        guard let tiles = currentTiles(), DockTiles.leadingSpacerCount(in: tiles) != count else { return }
         let updatedTiles = DockTiles.replacingLeadingSpacers(in: tiles, with: count)
         CFPreferencesSetAppValue(Self.tilesKey as CFString, updatedTiles as CFArray, Self.dockDomain as CFString)
         CFPreferencesAppSynchronize(Self.dockDomain as CFString)
         DockProcess.restart()
+    }
+
+    /// The user's pinned tiles, or nil if the Dock's preferences can't be read.
+    private func currentTiles() -> [DockTiles.Tile]? {
+        CFPreferencesCopyAppValue(Self.tilesKey as CFString, Self.dockDomain as CFString) as? [DockTiles.Tile]
     }
 
     /// The user's Dock icon size in points.

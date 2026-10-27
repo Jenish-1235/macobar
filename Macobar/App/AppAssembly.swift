@@ -12,11 +12,17 @@ final class AppAssembly {
         model: ChatBarModel(responder: PlaceholderResponder()),
         onQuit: { [weak self] in self?.quit() }
     )
+    /// The setup window, kept alive while it's open.
+    private var setupWindow: SetupWindow?
 
-    /// Waits for permission, reserves the Dock gap, then keeps the chat bar pinned to it.
+    /// Shows setup if anything is missing, then keeps the chat bar pinned to the Dock gap.
     func start() async {
+        let setup = SetupModel(gapReserver: gapReserver, fieldWidth: ChatBarStyle.preferredFieldWidth)
+        if !setup.isFinished {
+            setupWindow = SetupWindow(model: setup)
+            setupWindow?.show()
+        }
         await AccessibilityPermission.waitUntilGranted()
-        gapReserver.reserveGap(width: ChatBarStyle.preferredFieldWidth)
         for await geometry in dockObserver.geometryUpdates() {
             chatBar.follow(geometry)
         }
