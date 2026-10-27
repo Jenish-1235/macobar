@@ -1,0 +1,46 @@
+name: Macobar
+options:
+  bundleIdPrefix: com.macobar
+  deploymentTarget:
+    macOS: "26.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    DEVELOPMENT_TEAM: 8YC4N43T9C
+    CODE_SIGN_STYLE: Manual
+    CODE_SIGN_IDENTITY: Apple Development
+    ENABLE_HARDENED_RUNTIME: YES
+
+targets:
+  Macobar:
+    type: application
+    platform: macOS
+    sources:
+      - path: Macobar
+        excludes: ["**/README.md"]
+    info:
+      path: Macobar/Info.plist
+      properties:
+        CFBundleDisplayName: macobar
+        CFBundleShortVersionString: "0.1.0"
+        LSUIElement: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.macobar.app
+        GENERATE_INFOPLIST_FILE: NO
+    scheme:
+      testTargets: [MacobarTests]
+
+  # Logic-only tests: compiles the pure files directly so no app (and no Dock restart) launches.
+  MacobarTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - MacobarTests
+      - Macobar/Dock/DockGeometry.swift
+      - Macobar/Dock/DockTiles.swift
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
