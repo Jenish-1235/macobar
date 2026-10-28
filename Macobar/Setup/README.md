@@ -10,8 +10,8 @@ The one-screen setup window shown when Accessibility access, the Dock gap or a m
 - `SetupButtonStyle.swift`: cream-filled pill for the next action, outlined pill otherwise.
 - `SetupStyle.swift`: the palette (charcoal, graphite, smoke, cream, ash), type scale, sizes and motion.
 - `ConnectWindow.swift`: hosts the Connect screen as a sheet over setup (step 3) or as its own window (Change Model… in the Dock).
-- `ConnectView.swift`: provider grid, API key with a "Get a key" link, model, and region or resource when needed; Cancel and Connect.
-- `ConnectModel.swift`: the form state; Connect asks the provider for a one-word reply and only then saves the key and activates the account.
+- `ConnectView.swift`: once a main model exists, a Main model / Fast model choice with a quiet line on which model does which job and a way to remove the fast one; provider grid, API key with a "Get a key" link (or, for "On this Mac", a line on starting LM Studio or Ollama), model, and region, resource or server address when needed; Cancel and Connect.
+- `ConnectModel.swift`: the form state, including the role; Connect asks the provider for a one-word reply and only then saves the key and the account as the main or fast model.
 - `ProviderTile.swift`: one provider in the grid; the selected one is rimmed in cream with a check.
 - `SetupTextField.swift`: a labelled field in the setup palette (plain or secure).
 
@@ -23,11 +23,12 @@ The one-screen setup window shown when Accessibility access, the Dock gap or a m
 ## Gotchas
 - ChatGPT isn't offered yet; it joins the grid once Sign in with ChatGPT exists.
 - An empty key field keeps the key already saved for that provider.
+- The role choice appears only once a main model is connected, so first-run setup always connects the main model. A new fast model starts on "On this Mac".
 
 ## Design rules
 - Monochrome only: charcoal and cream. No accent colours, no gradients.
 - New York serif for the single headline and step numerals; SF Pro for everything else.
-- Only one cream-filled button at a time: whichever action comes next. Selection (provider tiles) is shown with a cream rim, never a fill.
+- Only one cream-filled button at a time: whichever action comes next. Selection (provider tiles, the role choice) is shown with a cream rim, never a fill.
 - The miniature Dock opening is the one big motion. Macie asks (head tilt) while waiting on System Settings and smiles once setup is done.
 
 ## Depends on

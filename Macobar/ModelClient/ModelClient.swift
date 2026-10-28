@@ -1,6 +1,14 @@
 import Foundation
 
-/// Sends a conversation to the active provider and streams the reply back as text.
+/// What a streamed reply produces: text as it arrives, then the complete turn.
+enum ModelEvent: Sendable {
+    /// More reply text.
+    case text(String)
+    /// The whole turn, including any tool calls.
+    case finished(AssistantTurn)
+}
+
+/// Sends a conversation to the active provider and streams the reply back.
 struct ModelClient: Sendable {
     /// Largest error body read when a request is refused.
     private static let errorBodyLimit = 64 * 1024
@@ -22,21 +30,23 @@ struct ModelClient: Sendable {
         self.session = session
     }
 
-    /// Streams the model's reply to `conversation` as text fragments.
-    func streamReply(instructions: String, conversation: [ChatMessage]) -> AsyncThrowingStream<String, Error> {
+    /// Streams the model's reply to `conversation` with `tools` available.
+    func streamReply(instructions: String, conversation: [ConversationItem], tools: [ToolDefinition] = []) -> AsyncThrowingStream<ModelEvent, Error> {
         AsyncThrowingStream { continuation in
             let task = Task {
                 do {
-                    let request = try makeRequest(instructions: instructions, conversation: conversation)
-                    let (bytes, response) = try await session.bytes(for: request)
+                    let request = try makeRequest(instructions: instructions, conversation: conversation, tools: tools)
+                    // Redirects aren't followed, so the credential in the headers only ever reaches the provider's own address.
+                    let (bytes, response) = try await session.bytes(for: request, delegate: RedirectRefuser())
                     try await Self.checkStatus(of: response, body: bytes)
-                    for try await line in bytes.lines {
-                        switch try format.read(line: line) {
-                        case .text(let text): continuation.yield(text)
-                        case .finished: return continuation.finish()
-                        case .ignored: continue
-                        }
+                    var reader = format.makeReader()
+                    for try await line in bytes.lines where line.hasPrefix("data:") {
+                        let payload = line.dropFirst("data:".count).trimmingCharacters(in: .whitespaces)
+                        if payload == "[DONE]" { break }
+                        if let text = try reader.read(payload: payload), !text.isEmpty { continuation.yield(.text(text)) }
+                        if reader.isFinished { break }
                     }
+                    continuation.yield(.finished(try reader.finishedTurn()))
                     continuation.finish()
                 } catch {
                     continuation.finish(throwing: error)
@@ -47,10 +57,10 @@ struct ModelClient: Sendable {
     }
 
     /// The POST request for `conversation`.
-    private func makeRequest(instructions: String, conversation: [ChatMessage]) throws -> URLRequest {
-        var request = URLRequest(url: endpoint.url)
+    private func makeRequest(instructions: String, conversation: [ConversationItem], tools: [ToolDefinition]) throws -> URLRequest {
+        var request = URLRequest(url: endpoint.url, timeoutInterval: 300)
         request.httpMethod = "POST"
-        request.httpBody = try format.requestBody(model: model, instructions: instructions, conversation: conversation)
+        request.httpBody = try format.requestBody(model: model, instructions: instructions, conversation: conversation, tools: tools)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
         for (field, value) in endpoint.headers.merging(format.formatHeaders, uniquingKeysWith: { $1 }) {
@@ -61,12 +71,12 @@ struct ModelClient: Sendable {
 
     /// Throws the provider's explanation when the response isn't a success.
     private static func checkStatus(of response: URLResponse, body: URLSession.AsyncBytes) async throws {
-        guard let status = (response as? HTTPURLResponse)?.statusCode, !(200..<300).contains(status) else { return }
+        guard let response = response as? HTTPURLResponse, !(200..<300).contains(response.statusCode) else { return }
         var data = Data()
         for try await byte in body {
             guard data.count < errorBodyLimit else { break }
             data.append(byte)
         }
-        throw ModelClientError.rejected(status: status, message: ProviderErrorBody.message(in: data))
+        throw ModelClientError.httpError(response, body: data)
     }
 }

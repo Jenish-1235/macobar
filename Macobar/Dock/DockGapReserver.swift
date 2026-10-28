@@ -47,9 +47,10 @@ struct DockGapReserver {
         DockProcess.restart()
     }
 
-    /// The user's pinned tiles, or nil if the Dock's preferences can't be read.
+    /// The user's pinned tiles as the Dock last saved them, or nil if its preferences can't be read.
     private func currentTiles() -> [DockTiles.Tile]? {
-        CFPreferencesCopyAppValue(Self.tilesKey as CFString, Self.dockDomain as CFString) as? [DockTiles.Tile]
+        CFPreferencesAppSynchronize(Self.dockDomain as CFString)
+        return CFPreferencesCopyAppValue(Self.tilesKey as CFString, Self.dockDomain as CFString) as? [DockTiles.Tile]
     }
 
     /// The user's Dock icon size in points.

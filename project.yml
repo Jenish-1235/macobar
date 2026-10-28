@@ -26,26 +26,75 @@ targets:
         CFBundleDisplayName: macobar
         CFBundleShortVersionString: "0.1.0"
         LSUIElement: true
+        NSAppleEventsUsageDescription: Macie controls apps like Safari, Mail, Music and System Events when you ask her to.
+        NSCalendarsFullAccessUsageDescription: Macie reads your agenda and adds events when you ask her to.
+        NSRemindersFullAccessUsageDescription: Macie reads your reminders and adds new ones when you ask her to.
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+        NSContactsUsageDescription: Macie looks up people's email addresses and phone numbers when you ask her to message them.
+        NSMicrophoneUsageDescription: Macie listens while you hold Option-Space and turns what you say into a prompt. Speech is transcribed on this Mac.
+    entitlements:
+      path: Macobar/Macobar.entitlements
+      properties:
+        com.apple.security.automation.apple-events: true
+        com.apple.security.personal-information.calendars: true
+        com.apple.security.personal-information.addressbook: true
+        com.apple.security.device.audio-input: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.macobar.app
         GENERATE_INFOPLIST_FILE: NO
+    dependencies:
+      - target: MacobarMCPBridge
+        embed: true
+        codeSign: true
+        copy:
+          destination: executables
     scheme:
       testTargets: [MacobarTests]
 
-  # Logic-only tests: compiles the pure files directly so no app (and no Dock restart) launches.
+  # Tests compile the app's code without its entry point, so nothing launches (and the Dock is never touched).
   MacobarTests:
     type: bundle.unit-test
     platform: macOS
     sources:
       - MacobarTests
-      - Macobar/Dock/DockGeometry.swift
-      - Macobar/Dock/DockTiles.swift
-      - Macobar/Providers/ProviderKind.swift
-      - Macobar/Providers/ProviderAccount.swift
-      - Macobar/Providers/ProviderEndpoint.swift
-      - path: Macobar/ModelClient
-        excludes: ["README.md"]
+      - path: Macobar
+        excludes: ["**/README.md", "App/MacobarApp.swift", "Info.plist", "Macobar.entitlements"]
+      - path: MacobarBench
+        excludes: ["README.md", "MacobarBench.swift"]
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
+
+  # Measures how well a model drives Macie's tools, with stand-in tools; nothing on the Mac is touched.
+  macobar-bench:
+    type: tool
+    platform: macOS
+    sources:
+      - path: MacobarBench
+        excludes: ["README.md"]
+      - path: Macobar
+        excludes: ["**/README.md", "App/MacobarApp.swift", "Info.plist", "Macobar.entitlements"]
+    info:
+      path: MacobarBench/Info.plist
+      properties:
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+    settings:
+      base:
+        CREATE_INFOPLIST_SECTION_IN_BINARY: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.macobar.bench
+
+  # macobar-mcp: the stdio bridge Claude Desktop launches to reach the Share Tools server; copied into the app.
+  MacobarMCPBridge:
+    type: tool
+    platform: macOS
+    sources:
+      - path: MCPBridge
+        excludes: ["README.md"]
+    settings:
+      base:
+        PRODUCT_NAME: macobar-mcp
+        PRODUCT_BUNDLE_IDENTIFIER: com.macobar.mcp-bridge
+        SKIP_INSTALL: YES

@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// The Connect screen: pick a provider, paste a key, name the model, and check it in one go.
+/// The Connect screen: pick the role and provider, paste a key, name the model, and check it in one go.
 struct ConnectView: View {
     /// Form state and the connection check.
     @Bindable var model: ConnectModel
@@ -25,8 +25,12 @@ struct ConnectView: View {
                 .font(SetupStyle.ledeFont)
                 .foregroundStyle(SetupStyle.ash)
                 .padding(.top, 10)
+            if let main = model.mainAccount {
+                roleChoice(main: main)
+                    .padding(.top, 26)
+            }
             providerGrid
-                .padding(.top, 30)
+                .padding(.top, 26)
             fields
                 .padding(.top, 26)
             footer
@@ -51,6 +55,34 @@ struct ConnectView: View {
         }
     }
 
+    /// Main or fast model, with a quiet line on which model does which job.
+    private func roleChoice(main: ProviderAccount) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
+                ForEach(ConnectModel.Role.allCases, id: \.self) { role in
+                    RoleOption(title: role.title, isSelected: model.role == role) { model.role = role }
+                }
+            }
+            if let fast = model.fastAccount {
+                HStack(spacing: 8) {
+                    Text("\(fast.model) takes quick commands; \(main.model) takes the rest.")
+                        .lineLimit(2)
+                    Button("Remove fast model") { model.removeFastModel() }
+                        .buttonStyle(.plain)
+                        .underline()
+                }
+                .font(SetupStyle.detailFont)
+                .foregroundStyle(SetupStyle.ash)
+            } else if model.role == .fast {
+                Text("A fast model, often one on this Mac, takes quick commands like opening apps or setting timers. Anything harder goes to \(main.model).")
+                    .font(SetupStyle.detailFont)
+                    .foregroundStyle(SetupStyle.ash)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .animation(SetupStyle.settle, value: model.role)
+    }
+
     /// Every provider as a tile, two to a row.
     private var providerGrid: some View {
         LazyVGrid(columns: Self.columns, spacing: 10) {
@@ -63,22 +95,34 @@ struct ConnectView: View {
     /// The key, then the model beside the region or resource when the provider needs one.
     private var fields: some View {
         VStack(alignment: .leading, spacing: 18) {
-            ZStack(alignment: .topTrailing) {
-                SetupTextField(label: "API key", text: $model.apiKey, prompt: keyPrompt, isSecure: true)
-                if let keyPage = model.kind.keyPageURL {
-                    Link(destination: keyPage) {
-                        Label("Get a key", systemImage: "arrow.up.right")
-                            .labelStyle(TrailingIconLabelStyle())
-                    }
+            if model.kind.signInMethod == .none {
+                Text("Start the server in LM Studio (Developer, then Start Server) or open Ollama, then enter its address and the model's name. LM Studio uses port 1234, Ollama 11434.")
                     .font(SetupStyle.detailFont)
                     .foregroundStyle(SetupStyle.ash)
-                }
+                    .fixedSize(horizontal: false, vertical: true)
+            } else {
+                apiKeyField
             }
             LazyVGrid(columns: Self.columns, alignment: .leading, spacing: 10) {
                 SetupTextField(label: model.kind == .azureOpenAI ? "Deployment" : "Model", text: $model.model, prompt: modelPrompt)
                 if let setting = model.kind.requiredSetting {
                     SetupTextField(label: setting.label, text: $model.setting, prompt: settingPrompt(for: setting))
                 }
+            }
+        }
+    }
+
+    /// The key field, with a link to where keys are made.
+    private var apiKeyField: some View {
+        ZStack(alignment: .topTrailing) {
+            SetupTextField(label: "API key", text: $model.apiKey, prompt: keyPrompt, isSecure: true)
+            if let keyPage = model.kind.keyPageURL {
+                Link(destination: keyPage) {
+                    Label("Get a key", systemImage: "arrow.up.right")
+                        .labelStyle(TrailingIconLabelStyle())
+                }
+                .font(SetupStyle.detailFont)
+                .foregroundStyle(SetupStyle.ash)
             }
         }
     }
@@ -90,7 +134,11 @@ struct ConnectView: View {
 
     /// Hint in the model field.
     private var modelPrompt: String {
-        model.kind == .azureOpenAI ? "Your deployment name" : "Model ID"
+        switch model.kind {
+        case .azureOpenAI: "Your deployment name"
+        case .local: "e.g. qwen/qwen3.6-35b-a3b"
+        default: "Model ID"
+        }
     }
 
     /// An example value for the region or resource field.
@@ -98,6 +146,7 @@ struct ConnectView: View {
         switch setting {
         case .awsRegion: "us-east-1"
         case .azureResourceName: "my-resource"
+        case .serverAddress: "http://localhost:1234/v1"
         }
     }
 
@@ -136,6 +185,38 @@ struct ConnectView: View {
                 .lineLimit(3)
                 .fixedSize(horizontal: false, vertical: true)
         }
+    }
+}
+
+/// One role in the Connect screen's choice; the selected one is rimmed in cream with a check.
+private struct RoleOption: View {
+    /// The role's name.
+    let title: String
+    /// Whether it's the chosen role.
+    let isSelected: Bool
+    /// Chooses this role.
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 10, weight: .semibold))
+                }
+                Text(title)
+                    .font(SetupStyle.buttonFont)
+            }
+            .padding(.horizontal, 14)
+            .frame(height: 30)
+            .background(isSelected ? SetupStyle.graphite : Color.clear, in: Capsule())
+            .overlay(Capsule().strokeBorder(isSelected ? SetupStyle.cream.opacity(0.6) : SetupStyle.smoke, lineWidth: 1))
+            .foregroundStyle(isSelected ? SetupStyle.cream : SetupStyle.cream.opacity(0.78))
+            .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .animation(SetupStyle.settle, value: isSelected)
     }
 }
 

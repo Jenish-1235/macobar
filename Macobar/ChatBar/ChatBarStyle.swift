@@ -26,6 +26,10 @@ enum ChatBarStyle {
     static let promptFont = Font.system(size: 12, weight: .medium)
     /// The reply itself.
     static let replyFont = Font.system(size: 13)
+    /// Lines listing Macie's actions.
+    static let activityFont = Font.system(size: 11.5)
+    /// How many recent actions the card lists.
+    static let maxVisibleActivities = 6
     /// Extra leading that keeps multi-line replies easy to read.
     static let replyLineSpacing: CGFloat = 3
 

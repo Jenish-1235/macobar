@@ -6,10 +6,8 @@ struct ChatFieldView: View {
     @Bindable var model: ChatBarModel
     /// Hands keyboard focus back to the app the user came from.
     let onLeave: () -> Void
-    /// Opens the Connect screen to pick a different model.
-    let onChangeModel: () -> Void
-    /// Removes macobar from the Dock and quits.
-    let onQuit: () -> Void
+    /// Runs the menu item the user picked.
+    let onCommand: (ChatBarCommand) -> Void
     /// Whether the text field has keyboard focus.
     @FocusState private var isFocused: Bool
     /// Whether this panel is the key window, so focus styling clears when the user clicks away.
@@ -20,7 +18,7 @@ struct ChatFieldView: View {
             Macie(mood: macieMood, size: 13, showsGround: false)
                 .frame(width: 18)
                 .opacity(macieMood == .resting ? 0.7 : 1)
-            TextField("Tell your Mac what to do", text: $model.draft)
+            TextField(model.workingStatus ?? "Tell your Mac what to do", text: $model.draft)
                 .textFieldStyle(.plain)
                 .font(ChatBarStyle.fieldFont)
                 .focused($isFocused)
@@ -37,10 +35,14 @@ struct ChatFieldView: View {
         .contentShape(Capsule())
         .onTapGesture { isFocused = true }
         .onExitCommand(perform: handleEscape)
+        .onChange(of: model.fieldFocusRequests) { isFocused = true }
         .contextMenu {
-            Button("Change Model…", action: onChangeModel)
+            ForEach(ChatBarCommand.allCases.filter { $0 != .quit }, id: \.self) { command in
+                Button(command.title) { onCommand(command) }
+            }
+            Toggle("Speak Replies", isOn: $model.speaksReplies)
             Divider()
-            Button("Quit macobar", action: onQuit)
+            Button(ChatBarCommand.quit.title) { onCommand(.quit) }
         }
         .animation(ChatBarStyle.settle, value: model.draft.isEmpty)
         .animation(ChatBarStyle.settle, value: isActive)
@@ -49,9 +51,12 @@ struct ChatFieldView: View {
     /// Whether the field is focused in the key window.
     private var isActive: Bool { isFocused && activeState == .key }
 
-    /// Macie's mood: working while replying, listening while typing, then done or stuck once the reply ends.
+    /// Macie's mood: listening while the user talks, asking while waiting for approval (hers or another app's), working while replying, listening while typing, then done or stuck.
     private var macieMood: Macie.Mood {
+        if model.isHearingVoice { return .listening }
+        if model.shownExternalApproval != nil { return .asking }
         guard let exchange = model.exchange else { return isActive ? .listening : .resting }
+        if exchange.pendingApproval != nil { return .asking }
         if exchange.isResponding { return .working }
         if !model.draft.isEmpty { return .listening }
         return exchange.failureMessage == nil ? .done : .stuck
@@ -69,7 +74,7 @@ struct ChatFieldView: View {
             }
     }
 
-    /// First Escape clears the draft; the next one collapses the reply and leaves the field.
+    /// First Escape clears the draft; the next one denies another app's waiting approval, or collapses the reply, and leaves the field.
     private func handleEscape() {
         guard model.draft.isEmpty else { return model.draft = "" }
         model.dismiss()

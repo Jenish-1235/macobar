@@ -19,7 +19,7 @@ Accessibility permission (granted via Permissions).
 ## Gotchas
 - The Dock strips custom keys from tiles, so the gap is identified by position: the spacer run right after Finder. A user's own spacers in that spot are treated as the gap.
 - Accessibility frames use a top-left origin on the primary screen; they're flipped to AppKit's bottom-left origin in `DockReader`.
-- The gap only exists while macobar runs: it's removed on every quit and restored on launch, each costing one Dock restart.
+- The gap only exists while macobar runs: it's removed on every quit and restored on launch, each costing one Dock restart. The preferences are re-read before every change. At launch macobar waits until the Dock has been running for 2 seconds (`DockProcess.waitUntilSettled()`), then checks the gap again after the restart, retrying up to 3 times, because a Dock still starting up can save its old layout over it.
 - `releaseGap()` does nothing unless the user added macobar, so a user's own spacers after Finder are safe.
 - A force quit (SIGKILL) or crash can't clean up; the gap stays until macobar's next launch and quit.
 - Only a bottom Dock without magnification is handled so far.

@@ -15,20 +15,27 @@ final class ChatBarController {
     /// Latest natural size of the reply sheet; zero when collapsed.
     private var replySize = CGSize.zero
 
-    /// Builds both panels around `model`; the callbacks run when the user picks Change Model or Quit.
-    init(model: ChatBarModel, onChangeModel: @escaping () -> Void, onQuit: @escaping () -> Void) {
+    /// Builds both panels around `model`; `onCommand` runs when the user picks an item from the field's menu.
+    init(model: ChatBarModel, onCommand: @escaping (ChatBarCommand) -> Void) {
         self.model = model
         fieldPanel.contentView = hostingView(for: ChatFieldView(
             model: model,
             onLeave: { [weak fieldPanel] in fieldPanel?.handBackKeyFocus() },
-            onChangeModel: onChangeModel,
-            onQuit: onQuit
+            onCommand: onCommand
         ))
         replyPanel.contentView = hostingView(for: ReplySheetView(
             model: model,
             onSizeChange: { [weak self] size in self?.resizeReply(to: size) }
         ))
         collapseFinishedReplyWhenUserClicksAway()
+    }
+
+    /// Brings the field forward with keyboard focus, for the Option-Space shortcut.
+    func focusField() {
+        guard geometry != nil else { return }
+        fieldPanel.orderFrontRegardless()
+        fieldPanel.makeKey()
+        model.fieldFocusRequests += 1
     }
 
     /// Moves both panels to match the Dock, hiding them while the gap isn't on screen.

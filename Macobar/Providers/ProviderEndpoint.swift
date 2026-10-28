@@ -26,6 +26,7 @@ struct ProviderEndpoint: Equatable, Sendable {
         case .azureOpenAI: return try "https://\(hostLabel(of: account)).openai.azure.com/openai/v1/"
         case .openRouter: return "https://openrouter.ai/api/v1/"
         case .openCodeZen: return "https://opencode.ai/zen/v1/"
+        case .local: return try serverAddress(of: account)
         }
     }
 
@@ -35,7 +36,18 @@ struct ProviderEndpoint: Equatable, Sendable {
         case .claude, .bedrock: ["x-api-key": credential]
         case .azureOpenAI: ["api-key": credential]
         case .openAI, .chatGPT, .gemini, .openRouter, .openCodeZen: ["Authorization": "Bearer \(credential)"]
+        case .local: [:]
         }
+    }
+
+    /// The local server's address as an http(s) URL ending in a slash, so the API path appends cleanly.
+    private static func serverAddress(of account: ProviderAccount) throws -> String {
+        let address = (account.setting ?? "").trimmingCharacters(in: .whitespaces)
+        guard !address.isEmpty else { throw ProviderEndpointError.missingSetting(.serverAddress) }
+        guard let url = URL(string: address), ["http", "https"].contains(url.scheme?.lowercased()), url.host() != nil else {
+            throw ProviderEndpointError.invalidSetting(.serverAddress)
+        }
+        return address.hasSuffix("/") ? address : address + "/"
     }
 
     /// The account's setting, checked to be a single host label so it can't redirect requests elsewhere.
@@ -63,6 +75,7 @@ enum ProviderEndpointError: LocalizedError, Equatable {
     var errorDescription: String? {
         switch self {
         case .missingSetting(let setting): "Enter your \(setting.label)."
+        case .invalidSetting(.serverAddress): "Enter the server address as a web address, like http://localhost:1234/v1."
         case .invalidSetting(let setting): "Your \(setting.label) can only contain letters, numbers and hyphens."
         case .invalidAddress: "macobar couldn't form this provider's address."
         }

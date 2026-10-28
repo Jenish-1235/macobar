@@ -60,11 +60,26 @@ struct ProviderEndpointTests {
         }
     }
 
-    @Test("Every provider has an HTTPS endpoint")
-    func everyProviderUsesHTTPS() throws {
-        for kind in ProviderKind.allCases {
+    @Test("Every cloud provider has an HTTPS endpoint")
+    func everyCloudProviderUsesHTTPS() throws {
+        for kind in ProviderKind.allCases where kind != .local {
             let setting = kind.requiredSetting == nil ? nil : "valid-label"
             #expect(try endpoint(kind, setting: setting).url.scheme == "https")
         }
+    }
+
+    @Test("A local server is reached at its address, with no credential sent", arguments: [
+        "http://localhost:1234/v1",
+        " http://localhost:1234/v1/ ",
+    ])
+    func localServer(address: String) throws {
+        let endpoint = try endpoint(.local, setting: address)
+        #expect(endpoint.url.absoluteString == "http://localhost:1234/v1/chat/completions")
+        #expect(endpoint.headers.isEmpty)
+    }
+
+    @Test("A local server address must be a web address", arguments: ["localhost:1234", "ftp://localhost/v1", "not an address"])
+    func invalidLocalAddress(address: String) {
+        #expect(throws: ProviderEndpointError.invalidSetting(.serverAddress)) { try endpoint(.local, setting: address) }
     }
 }

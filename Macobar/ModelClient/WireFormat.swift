@@ -4,51 +4,40 @@ import Foundation
 protocol WireFormat: Sendable {
     /// Headers this format needs besides authentication.
     var formatHeaders: [String: String] { get }
-    /// The JSON body asking `model` to continue `conversation`, guided by `instructions`.
-    func requestBody(model: String, instructions: String, conversation: [ChatMessage]) throws -> Data
-    /// Reads the JSON payload of one streamed `data:` line.
-    func read(payload: String) throws -> StreamEvent
+    /// The JSON body asking `model` to continue `conversation`, guided by `instructions`, with `tools` available.
+    func requestBody(model: String, instructions: String, conversation: [ConversationItem], tools: [ToolDefinition]) throws -> Data
+    /// A fresh reader for one streamed reply.
+    func makeReader() -> any ReplyReader
 }
 
-/// What one streamed line meant.
-enum StreamEvent: Equatable, Sendable {
-    /// More reply text.
-    case text(String)
-    /// The reply is complete.
-    case finished
-    /// Bookkeeping that carries no reply text.
-    case ignored
-}
-
-extension WireFormat {
-    /// Reads one line of a server-sent event stream; only `data:` lines carry anything.
-    func read(line: String) throws -> StreamEvent {
-        guard line.hasPrefix("data:") else { return .ignored }
-        let payload = line.dropFirst("data:".count).trimmingCharacters(in: .whitespaces)
-        guard payload != "[DONE]" else { return .finished }
-        return try read(payload: payload)
-    }
-
-    /// Encodes a request body, turning Swift's camelCase names into the APIs' snake_case keys.
-    func encode(_ body: some Encodable) throws -> Data {
-        let encoder = JSONEncoder()
-        encoder.keyEncodingStrategy = .convertToSnakeCase
-        return try encoder.encode(body)
-    }
-
-    /// Decodes a streamed JSON payload into `type`.
-    func decode<Payload: Decodable>(_ type: Payload.Type, from payload: String) throws -> Payload {
-        try JSONDecoder().decode(type, from: Data(payload.utf8))
-    }
+/// Assembles one assistant turn from a streamed reply, one `data:` payload at a time.
+protocol ReplyReader {
+    /// Whether the provider signalled the end of the reply.
+    var isFinished: Bool { get }
+    /// Reads one payload and returns any new reply text.
+    mutating func read(payload: String) throws -> String?
+    /// The complete turn: text, tool calls, and the provider's own form for replay.
+    func finishedTurn() throws -> AssistantTurn
 }
 
 extension ProviderAccount {
     /// The wire format this account's provider speaks.
     var wireFormat: any WireFormat {
         switch kind.apiFormat {
-        case .anthropicMessages: AnthropicMessagesFormat(usesServerFallbacks: kind == .claude && model == kind.defaultModel)
+        case .anthropicMessages:
+            AnthropicMessagesFormat(isClaudeAPI: kind == .claude, usesServerFallbacks: kind == .claude && model == kind.defaultModel)
         case .openAIChatCompletions: ChatCompletionsFormat()
         case .openAIResponses: ResponsesFormat()
         }
     }
 }
+
+extension JSONValue {
+    /// Parses a tool call's argument string, falling back to an empty object so a bad call can still be replayed.
+    static func arguments(_ text: String) -> JSONValue {
+        (try? parse(text)).flatMap { $0.object == nil ? nil : $0 } ?? [:]
+    }
+}
+
+/// Thrown when a reply stops at the provider's length limit, so half-written tool calls are never run.
+let replyCutShort = ModelClientError.failed("The reply hit the model's length limit before it finished.")

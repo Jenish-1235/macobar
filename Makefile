@@ -14,4 +14,8 @@ run: build
 test: generate
 	xcodebuild -project Macobar.xcodeproj -scheme Macobar -derivedDataPath build -destination "platform=macOS,arch=arm64" -quiet test
 
-.PHONY: generate build run test
+.PHONY: generate build run test bench
+
+# Builds the model test bench (MacobarBench/) into ./build/Bench/Release/macobar-bench.
+bench: generate
+	xcodebuild -project Macobar.xcodeproj -target macobar-bench -configuration Release SYMROOT=build/Bench -quiet build

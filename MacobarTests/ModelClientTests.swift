@@ -40,18 +40,18 @@ struct ModelClientTests {
         return try ModelClient(account: account, credential: "secret", session: URLSession(configuration: configuration))
     }
 
-    /// Collects the whole reply.
+    /// Collects the whole reply text.
     private func reply(from client: ModelClient) async throws -> String {
         var reply = ""
-        for try await fragment in client.streamReply(instructions: "Be brief.", conversation: sampleConversation) {
-            reply += fragment
+        for try await event in client.streamReply(instructions: "Be brief.", conversation: [.user("Hi")]) {
+            if case .text(let text) = event { reply += text }
         }
         return reply
     }
 
     @Test("A streamed reply arrives as text, sent with the provider's headers")
     func streamedReply() async throws {
-        StubURLProtocol.cannedResponse = (200, AnthropicMessagesFormatTests.recordedStream)
+        StubURLProtocol.cannedResponse = (200, AnthropicMessagesFormatTests.textStream)
         #expect(try await reply(from: makeClient()) == "Hello there.")
         let request = try #require(StubURLProtocol.lastRequest)
         #expect(request.httpMethod == "POST")

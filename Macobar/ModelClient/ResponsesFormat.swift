@@ -5,82 +5,108 @@ struct ResponsesFormat: WireFormat {
     /// Authentication is all OpenAI needs.
     var formatHeaders: [String: String] { [:] }
 
-    /// A streamed, unstored request; ChatGPT sign-in rejects anything else.
-    func requestBody(model: String, instructions: String, conversation: [ChatMessage]) throws -> Data {
-        try encode(Body(
-            model: model,
-            stream: true,
-            store: false,
-            instructions: instructions,
-            input: conversation.map { Message(role: $0.role, content: $0.text) }
-        ))
-    }
-
-    /// Output text deltas become text; `response.completed` ends the reply; failures throw.
-    func read(payload: String) throws -> StreamEvent {
-        let event = try decode(Event.self, from: payload)
-        switch event.type {
-        case "response.output_text.delta": return .text(event.delta ?? "")
-        case "response.completed": return .finished
-        case "response.failed", "error":
-            throw ModelClientError.failed(event.response?.error?.message ?? event.message ?? "The provider reported an error.")
-        case "response.incomplete":
-            throw ModelClientError.failed("The reply was cut short (\(event.response?.incompleteDetails?.reason ?? "unknown reason")).")
-        default: return .ignored
+    /// A streamed, unstored request; reasoning comes back encrypted so it can be replayed in later steps.
+    func requestBody(model: String, instructions: String, conversation: [ConversationItem], tools: [ToolDefinition]) throws -> Data {
+        var body: [String: JSONValue] = [
+            "model": .string(model),
+            "stream": true,
+            "store": false,
+            "instructions": .string(instructions),
+            "input": .array(conversation.flatMap(inputItems)),
+            "include": ["reasoning.encrypted_content"],
+        ]
+        if !tools.isEmpty {
+            body["tools"] = .array(tools.map { tool in
+                ["type": "function", "name": .string(tool.name), "description": .string(tool.description), "parameters": tool.parameters]
+            })
         }
+        return try JSONValue.object(body).encoded()
     }
 
-    /// Request body.
-    private struct Body: Encodable {
-        /// Model ID.
-        let model: String
-        /// Always streamed.
-        let stream: Bool
-        /// Never kept on OpenAI's servers.
-        let store: Bool
-        /// The system prompt.
-        let instructions: String
-        /// The conversation so far.
-        let input: [Message]
+    /// A reader for Responses stream events.
+    func makeReader() -> any ReplyReader {
+        ResponsesReplyReader()
     }
 
-    /// One conversation turn.
-    private struct Message: Encodable {
-        /// Who said it.
-        let role: ChatMessage.Role
-        /// What was said.
-        let content: String
-    }
-
-    /// The fields macobar reads from a streamed event.
-    private struct Event: Decodable {
-        /// Event type, e.g. `response.output_text.delta`.
-        let type: String
-        /// New reply text on delta events.
-        let delta: String?
-        /// Error text on `error` events.
-        let message: String?
-        /// The response, on completion and failure events.
-        let response: Response?
-
-        /// The parts of a finished or failed response macobar reads.
-        struct Response: Decodable {
-            /// Why the response failed.
-            let error: ProviderErrorDetail?
-            /// Why the response stopped early.
-            let incompleteDetails: IncompleteDetails?
-
-            /// Maps the API's snake_case keys.
-            enum CodingKeys: String, CodingKey {
-                case error
-                case incompleteDetails = "incomplete_details"
+    /// One conversation item as Responses input items.
+    private func inputItems(_ item: ConversationItem) -> [JSONValue] {
+        switch item {
+        case .user(let text):
+            return [["role": "user", "content": .string(text)]]
+        case .assistant(let turn):
+            if let native = turn.nativeContent?.array { return native }
+            let message: [JSONValue] = turn.text.isEmpty ? [] : [["role": "assistant", "content": .string(turn.text)]]
+            return message + turn.toolCalls.map { call in
+                ["type": "function_call", "call_id": .string(call.id), "name": .string(call.name), "arguments": .string(call.arguments)]
+            }
+        case .toolResults(let results):
+            return results.map { result in
+                ["type": "function_call_output", "call_id": .string(result.callID), "output": Self.output(of: result)]
             }
         }
+    }
 
-        /// Why a response stopped early.
-        struct IncompleteDetails: Decodable {
-            /// E.g. `max_output_tokens` or `content_filter`.
-            let reason: String?
+    /// A tool result's output: plain text, or a text part followed by image parts when the tool returned images.
+    private static func output(of result: ToolResult) -> JSONValue {
+        let text = result.isError ? "Error: \(result.output)" : result.output
+        guard !result.images.isEmpty else { return .string(text) }
+        let images: [JSONValue] = result.images.map { ["type": "input_image", "image_url": .string($0.dataURL)] }
+        return .array([["type": "input_text", "text": .string(text)]] + images)
+    }
+}
+
+/// Collects text and finished output items from Responses stream events.
+struct ResponsesReplyReader: ReplyReader {
+    /// Reply text so far.
+    private var text = ""
+    /// Finished output items, prepared for replay.
+    private var items: [JSONValue] = []
+    /// Tool calls among the output items.
+    private var toolCalls: [ToolCall] = []
+    /// Whether `response.completed` arrived.
+    private(set) var isFinished = false
+
+    /// Applies one event, returning new reply text.
+    mutating func read(payload: String) throws -> String? {
+        let event = try JSONValue.parse(payload)
+        switch event["type"]?.string {
+        case "response.output_text.delta":
+            let delta = event["delta"]?.string ?? ""
+            text += delta
+            return delta
+        case "response.output_item.done":
+            if let item = event["item"] { record(item) }
+        case "response.completed":
+            isFinished = true
+        case "response.incomplete":
+            if event["response"]?["incomplete_details"]?["reason"]?.string == "max_output_tokens" { throw replyCutShort }
+            throw ModelClientError.failed("The reply was cut short (\(event["response"]?["incomplete_details"]?["reason"]?.string ?? "unknown reason")).")
+        case "response.failed", "error":
+            let error = event["response"]?["error"] ?? event["error"] ?? event
+            throw ModelClientError.streamError(message: error["message"]?.string, code: error["code"]?.string, payload: payload)
+        default:
+            break
         }
+        return nil
+    }
+
+    /// Keeps a finished item for replay; unstored items can't be referenced by ID, so only reasoning keeps its ID.
+    private mutating func record(_ item: JSONValue) {
+        guard var fields = item.object else { return }
+        if fields["type"]?.string == "function_call" {
+            toolCalls.append(ToolCall(
+                id: fields["call_id"]?.string ?? "",
+                name: fields["name"]?.string ?? "",
+                arguments: fields["arguments"]?.string ?? "{}"
+            ))
+        }
+        if fields["type"]?.string != "reasoning" { fields["id"] = nil }
+        fields["status"] = nil
+        items.append(.object(fields))
+    }
+
+    /// The turn's text, tool calls, and output items for replay.
+    func finishedTurn() throws -> AssistantTurn {
+        AssistantTurn(text: text, toolCalls: toolCalls, nativeContent: .array(items))
     }
 }

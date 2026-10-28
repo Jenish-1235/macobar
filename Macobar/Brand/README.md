@@ -16,7 +16,7 @@ Macie, the character shared by every screen. macobar is the product (the bar in 
 | Mood | When |
 |---|---|
 | resting | Idle; blinks every few seconds |
-| listening | The user is focused in the field or typing |
+| listening | The user is focused in the field, typing, or talking with Option-Space held |
 | working | A reply or task is in progress; hops |
 | done | The last request finished |
 | asking | Waiting for the user's OK (e.g. permission in setup) |
