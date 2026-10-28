@@ -59,7 +59,7 @@ struct SetupView: View {
                 title: "Allow Accessibility",
                 detail: model.isWaitingForAccessibility
                     ? "Turn on macobar in Privacy & Security → Accessibility."
-                    : "Lets Macie find the Dock and, soon, work in your apps.",
+                    : "Lets Macie find the Dock and work in your apps.",
                 status: model.isAccessibilityGranted ? .done : .current,
                 actionTitle: model.isWaitingForAccessibility ? "Open Settings" : "Allow access",
                 doneTitle: "Allowed",

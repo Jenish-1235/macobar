@@ -99,7 +99,7 @@ final class AppAssembly {
         for _ in 0..<3 {
             await DockProcess.waitUntilSettled()
             gapReserver.reserveGap(width: ChatBarStyle.preferredFieldWidth)
-            try? await Task.sleep(for: .seconds(2))
+            await DockProcess.waitUntilSettled()
             if gapReserver.isGapReserved { return }
         }
     }

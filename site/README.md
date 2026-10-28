@@ -1,6 +1,6 @@
 # macobar landing page
 
-A single static page for macobar: what it is, Macie (the AI agent that lives in it), how it sits in the Dock, what's coming, how you stay in control, and a waitlist link. The hero recreates the Dock with macobar's field in it and plays a short demo: Macie listens while a prompt types itself, Return is pressed, Macie hops while the reply card rises out of the Dock and streams, then looks finished (or asks for your OK).
+A single static page for macobar: what it is, Macie (the AI agent that lives in it), how it sits in the Dock, what she can do today and what's next, how you stay in control, and a link to the GitHub repo. The hero recreates the Dock with macobar's field in it and plays a short demo: Macie listens while a prompt types itself, Return is pressed, Macie hops while the reply card rises out of the Dock and streams, then looks finished (or asks for your OK).
 
 No framework and no build step.
 
@@ -20,8 +20,8 @@ open site/index.html
 cd site && python3 -m http.server 8000   # then visit http://localhost:8000
 ```
 
-## Waitlist link (placeholder)
-Every "Join the waitlist" button scrolls to the closing section, which holds the page's one external link. Its URL is a placeholder, `https://example.com/macobar-waitlist`, marked with a `WAITLIST URL` comment in `index.html`. Replace that one `href` with the real waitlist.
+## Repo link
+Every "Get macobar" button scrolls to the closing section, which holds the page's one external link: the GitHub repo, `https://github.com/Jenish-1235/macobar`, marked with a `REPO URL` comment in `index.html`. If the repo moves, change that one `href`.
 
 ## Macie
 Macie is a small HTML/CSS component, used wherever the old mark was (header, hero field, diagram field, confirmation sheet, closing, footer) and in the "Meet Macie" row:

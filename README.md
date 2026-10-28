@@ -72,3 +72,6 @@ Each folder has its own README. When a module changes, its README changes in the
 - Descriptive names, no `Manager`/`Helper`/`Utils`.
 - A one-line `///` comment on every type, function and property; no comments that restate code.
 - Swift 6 strict concurrency, value types by default, `private` by default, no force-unwraps.
+
+## License
+MIT; see `LICENSE`. The bundled Mermaid is MIT too (`Macobar/Diagram/Vendor/mermaid-LICENSE.txt`).

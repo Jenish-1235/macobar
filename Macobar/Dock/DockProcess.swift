@@ -10,14 +10,17 @@ enum DockProcess {
         NSRunningApplication.runningApplications(withBundleIdentifier: bundleIdentifier).first
     }
 
-    /// How long a freshly started Dock is left alone; one still starting up can save its old layout over a change.
-    private static let settleTime: TimeInterval = 2
+    /// How long a freshly started Dock is left alone: about 5 seconds in it saves the layout it loaded, over any change made before that.
+    private static let settleTime: TimeInterval = 7
+    /// macobar's own preference holding when it last restarted the Dock, so a quick relaunch sees a restart its last run asked for.
+    private static let lastRestartKey = "lastDockRestart"
 
-    /// Waits until the Dock has been running for `settleTime`, giving up after 15 seconds.
+    /// Waits until a Dock started after macobar's last restart has been running for `settleTime`, giving up after 15 seconds; the Dock being restarted still looks settled until it exits.
     static func waitUntilSettled() async {
+        let lastRestart = UserDefaults.standard.object(forKey: lastRestartKey) as? Date ?? .distantPast
         for _ in 0..<60 {
             if let dock = running, let started = startDate(of: dock.processIdentifier),
-               Date.now.timeIntervalSince(started) >= settleTime { return }
+               started > lastRestart, Date.now.timeIntervalSince(started) >= settleTime { return }
             try? await Task.sleep(for: .milliseconds(250))
         }
     }
@@ -35,6 +38,7 @@ enum DockProcess {
     /// Restarts the Dock so it reloads its preferences; macOS relaunches it automatically.
     static func restart() {
         guard let dock = running else { return }
+        UserDefaults.standard.set(Date.now, forKey: lastRestartKey)
         kill(dock.processIdentifier, SIGTERM)
     }
 }

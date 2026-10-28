@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>macobar: your Mac, one sentence away</title>
-  <meta name="description" content="macobar puts a text field in the macOS Dock, right after Finder, and Macie, an AI agent, lives in it. Early and in active development.">
+  <meta name="description" content="macobar puts a text field in the macOS Dock, right after Finder, and Macie, an AI agent, lives in it. Free and open source.">
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#1A1918">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231A1918'/%3E%3Crect x='5' y='8' width='22' height='18' rx='9' fill='%23EDE6D6'/%3E%3Crect x='10.9' y='14.6' width='2' height='3' rx='1' fill='%231A1918'/%3E%3Crect x='19.1' y='14.6' width='2' height='3' rx='1' fill='%231A1918'/%3E%3C/svg%3E">
@@ -23,7 +23,7 @@
         <span class="macie" data-mood="resting" aria-hidden="true"><span class="macie-figure"><span class="macie-body"></span><span class="macie-face"></span></span><span class="macie-ground"></span></span>
         <span>macobar</span>
       </a>
-      <a class="button button-outline" href="#waitlist">Join the waitlist</a>
+      <a class="button button-outline" href="#get">Get macobar</a>
     </div>
   </header>
 
@@ -35,7 +35,7 @@
           <h1 class="display" id="hero-title">Your Mac, one sentence away.</h1>
           <p class="lede">macobar puts a text field in your Dock, right after Finder. Macie, the AI agent that lives in it, is always one click away: no window to find, no app to open.</p>
           <div class="actions">
-            <a class="button button-filled" href="#waitlist">Join the waitlist</a>
+            <a class="button button-filled" href="#get">Get macobar</a>
             <a class="text-link" href="#dock">See how it fits in the Dock</a>
           </div>
         </div>
@@ -70,7 +70,7 @@
             <span class="app-icon app-icon-tray extra"></span>
           </div>
         </div>
-        <p class="stage-caption container">A preview of where Macie is going. Today the field and replies work in your Dock; acting on files and apps is coming.</p>
+        <p class="stage-caption container">Type in the Dock, press Return, and Macie gets to work in your apps, files and the web.</p>
       </div>
     </section>
 
@@ -175,26 +175,27 @@
     <section class="section" id="roadmap" aria-labelledby="roadmap-title">
       <div class="container split">
         <div class="section-intro">
-          <h2 class="heading" id="roadmap-title">Where it's headed.</h2>
-          <p>macobar is early and in active development. The field and the reply card are built. Macie, the agent behind them, is what's being built now.</p>
+          <h2 class="heading" id="roadmap-title">What Macie can do.</h2>
+          <p>Around 60 tools, a model you choose, and a card that only rises when she's done or needs you.</p>
         </div>
 
         <div class="roadmap">
           <h3 class="roadmap-group">Works today</h3>
           <ul class="feature-list">
-            <li><strong>A chat field inside the Dock</strong><span>Right after Finder, set up in two steps.</span></li>
-            <li><strong>A reply card above it</strong><span>Rises out of the Dock and streams text as it arrives.</span></li>
+            <li><strong>Work in your apps</strong><span>Open, switch, click and type, through macOS Accessibility.</span></li>
+            <li><strong>See what's on screen</strong><span>So a request can refer to what you're looking at, and she can point at it.</span></li>
+            <li><strong>Files, mail, calendar and the web</strong><span>Plus messages, Shortcuts, sandboxed code and the shell.</span></li>
+            <li><strong>Guides and diagrams</strong><span>Walks you through a task step by step, or draws it as a flowchart.</span></li>
+            <li><strong>Talk to it</strong><span>Hold Option-Space and speak; it's transcribed on your Mac.</span></li>
+            <li><strong>Memory and scheduled tasks</strong><span>Keeps context between requests, and runs prompts later or on repeat.</span></li>
+            <li><strong>Your choice of model</strong><span>Claude, OpenAI, your ChatGPT account, or a local model in LM Studio or Ollama.</span></li>
+            <li><strong>Works with your AI apps</strong><span>Connect MCP servers, or share Macie's tools with Claude Code and Codex.</span></li>
           </ul>
 
-          <h3 class="roadmap-group">Coming</h3>
+          <h3 class="roadmap-group">Next</h3>
           <ul class="feature-list">
-            <li><strong>Work in your apps</strong><span>Click, type and navigate through macOS Accessibility.</span></li>
-            <li><strong>See what's on screen</strong><span>So a request can refer to what you're looking at.</span></li>
-            <li><strong>File and shell tasks</strong><span>With a confirmation before anything risky.</span></li>
-            <li><strong>An action log and a kill switch</strong><span>See every step it took, and stop it at any point.</span></li>
-            <li><strong>Memory</strong><span>Keeps context between requests.</span></li>
-            <li><strong>Long tasks</strong><span>Keeps going on work that takes a while.</span></li>
-            <li><strong>Your own API key</strong><span>Claude or OpenAI first. A subscription option comes later.</span></li>
+            <li><strong>A signed download</strong><span>Today you build it from source with Xcode.</span></li>
+            <li><strong>Any Dock position</strong><span>Docks on the left or right, and with magnification.</span></li>
           </ul>
         </div>
       </div>
@@ -205,7 +206,7 @@
       <div class="container">
         <div class="section-intro">
           <h2 class="heading" id="control-title">You stay in charge of your Mac.</h2>
-          <p>An agent that can act on your Mac should be easy to see, easy to stop, and should ask first. That's how Macie is being built.</p>
+          <p>An agent that can act on your Mac should be easy to see, easy to stop, and should ask first. That's how Macie is built.</p>
         </div>
 
         <div class="split control">
@@ -219,25 +220,25 @@
                 <span class="confirm-button confirm-button-default">Move files</span>
               </div>
             </div>
-            <figcaption>Coming: a confirmation like this before anything risky.</figcaption>
+            <figcaption>A confirmation like this rises before anything risky.</figcaption>
           </figure>
 
           <ul class="control-list">
             <li>
               <h3>Permissions you grant <span class="status">Today</span></h3>
-              <p>macobar uses the macOS Accessibility permission, which you allow and can turn off in System Settings. Right now it uses it only to find the Dock.</p>
+              <p>macobar uses Accessibility to find the Dock and work in your apps, and Screen Recording to see the screen. You allow each one and can turn it off in System Settings.</p>
             </li>
             <li>
-              <h3>Asks before risky actions <span class="status">Coming</span></h3>
-              <p>Anything destructive waits for your OK.</p>
+              <h3>Asks before risky actions <span class="status">Today</span></h3>
+              <p>Anything risky waits for your OK. Once she has read a page, file or email in a task, she asks again, even for actions you always allow.</p>
             </li>
             <li>
-              <h3>A log and a kill switch <span class="status">Coming</span></h3>
-              <p>Every action is written down, and one switch stops the agent.</p>
+              <h3>A log and a way to stop <span class="status">Today</span></h3>
+              <p>Every action is in History, with Undo for file changes. Press Escape in the empty field to stop her.</p>
             </li>
             <li>
-              <h3>Your key, your account <span class="status">Coming</span></h3>
-              <p>Bring your own Claude or OpenAI API key, so requests run on your own account.</p>
+              <h3>Your key, your account <span class="status">Today</span></h3>
+              <p>Your API key stays in your Keychain and goes only to the provider you chose. With a local model, nothing leaves your Mac.</p>
             </li>
             <li>
               <h3>Leaves cleanly <span class="status">Today</span></h3>
@@ -249,13 +250,13 @@
     </section>
 
     <!-- Final call to action -->
-    <section class="section closing" id="waitlist" aria-labelledby="waitlist-title">
+    <section class="section closing" id="get" aria-labelledby="get-title">
       <div class="container closing-inner">
         <span class="macie macie-large" data-mood="resting" aria-hidden="true"><span class="macie-figure"><span class="macie-body"></span><span class="macie-face"></span></span><span class="macie-ground"></span></span>
-        <h2 class="display display-closing" id="waitlist-title">Put macobar in your Dock.</h2>
-        <p>A native Swift app for macOS 26 and later, in active development. Join the waitlist to hear when there's a build to try.</p>
-        <!-- WAITLIST URL: the only external link on the page. Replace the href below with the real waitlist. -->
-        <a class="button button-filled button-large" href="https://example.com/macobar-waitlist">Join the waitlist</a>
+        <h2 class="display display-closing" id="get-title">Put macobar in your Dock.</h2>
+        <p>A native Swift app for macOS 26 and later. Free and open source under the MIT license; build it with Xcode in one command.</p>
+        <!-- REPO URL: the only external link on the page. -->
+        <a class="button button-filled button-large" href="https://github.com/Jenish-1235/macobar">Get it on GitHub</a>
       </div>
     </section>
   </main>

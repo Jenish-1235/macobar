@@ -385,7 +385,7 @@ a {
   text-wrap: balance;
 }
 
-/* Header: wordmark left, waitlist right. */
+/* Header: wordmark left, Get macobar right. */
 .site-header {
   position: absolute;
   inset: 0 0 auto;
@@ -1010,7 +1010,7 @@ h3 {
   }
 }
 
-/* Roadmap: two plain lists, what works today and what's coming. */
+/* Roadmap: two plain lists, what works today and what comes next. */
 .roadmap-group {
   font-family: var(--font-display);
   font-size: var(--text-md);
