@@ -1,9 +1,11 @@
 import SwiftUI
 
-/// The one-screen setup: headline, the miniature Dock, two steps and a finish button.
+/// The one-screen setup: headline, the miniature Dock, three steps and a finish button.
 struct SetupView: View {
     /// Setup state and actions.
     let model: SetupModel
+    /// Opens the Connect screen for step 3.
+    let onConnectModel: () -> Void
     /// Closes setup once everything is done.
     let onFinish: () -> Void
 
@@ -14,7 +16,7 @@ struct SetupView: View {
                 .font(SetupStyle.displayFont)
                 .tracking(-0.9)
                 .padding(.top, 44)
-            Text("Meet Macie, the agent in your Dock. Two steps and it's ready.")
+            Text("Meet Macie, the agent in your Dock. Three steps and it's ready.")
                 .font(SetupStyle.ledeFont)
                 .foregroundStyle(SetupStyle.ash)
                 .padding(.top, 12)
@@ -49,7 +51,7 @@ struct SetupView: View {
         return model.isWaitingForAccessibility ? .asking : .resting
     }
 
-    /// The two numbered steps, separated by a hairline.
+    /// The three numbered steps, separated by hairlines.
     private var steps: some View {
         VStack(spacing: 0) {
             SetupStepRow(
@@ -63,9 +65,7 @@ struct SetupView: View {
                 doneTitle: "Allowed",
                 action: allowAccessibility
             )
-            Rectangle()
-                .fill(SetupStyle.smoke)
-                .frame(height: 1)
+            hairline
             SetupStepRow(
                 number: 2,
                 title: "Add to the Dock",
@@ -75,7 +75,24 @@ struct SetupView: View {
                 doneTitle: "Added",
                 action: model.addToDock
             )
+            hairline
+            SetupStepRow(
+                number: 3,
+                title: "Connect a model",
+                detail: "Pick the provider Macie thinks with. Your key stays in your Keychain.",
+                status: model.connectedProvider != nil ? .done : (model.isInDock ? .current : .upcoming),
+                actionTitle: "Connect",
+                doneTitle: model.connectedProvider?.displayName ?? "",
+                action: onConnectModel
+            )
         }
+    }
+
+    /// The divider between steps.
+    private var hairline: some View {
+        Rectangle()
+            .fill(SetupStyle.smoke)
+            .frame(height: 1)
     }
 
     /// A closing line and the finish button, live once both steps are done.

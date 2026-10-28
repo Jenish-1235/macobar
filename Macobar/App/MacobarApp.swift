@@ -15,14 +15,22 @@ enum MacobarApp {
     }
 }
 
-/// Bridges AppKit's launch event to the app assembly.
+/// Bridges AppKit's launch and quit events to the app assembly.
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Every module, built once at launch.
     private let assembly = AppAssembly()
+    /// Turns `kill` and Ctrl-C into a normal quit.
+    private let terminationSignals = TerminationSignals()
 
     /// Starts macobar once AppKit is ready.
     func applicationDidFinishLaunching(_ notification: Notification) {
+        terminationSignals.quitOnSignal()
         Task { await assembly.start() }
+    }
+
+    /// Cleans up however macobar quits: the menu, closing setup, logout, or a signal.
+    func applicationWillTerminate(_ notification: Notification) {
+        assembly.stop()
     }
 }

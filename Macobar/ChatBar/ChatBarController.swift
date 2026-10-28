@@ -15,12 +15,13 @@ final class ChatBarController {
     /// Latest natural size of the reply sheet; zero when collapsed.
     private var replySize = CGSize.zero
 
-    /// Builds both panels around `model`; `onQuit` runs when the user picks Quit.
-    init(model: ChatBarModel, onQuit: @escaping () -> Void) {
+    /// Builds both panels around `model`; the callbacks run when the user picks Change Model or Quit.
+    init(model: ChatBarModel, onChangeModel: @escaping () -> Void, onQuit: @escaping () -> Void) {
         self.model = model
         fieldPanel.contentView = hostingView(for: ChatFieldView(
             model: model,
             onLeave: { [weak fieldPanel] in fieldPanel?.handBackKeyFocus() },
+            onChangeModel: onChangeModel,
             onQuit: onQuit
         ))
         replyPanel.contentView = hostingView(for: ReplySheetView(

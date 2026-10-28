@@ -1,7 +1,7 @@
 import CoreGraphics
 import Observation
 
-/// Tracks the two setup steps, Accessibility and the Dock gap, and performs them.
+/// Tracks the three setup steps (Accessibility, the Dock gap, a model) and performs the first two.
 @MainActor
 @Observable
 final class SetupModel {
@@ -11,20 +11,23 @@ final class SetupModel {
     private(set) var isWaitingForAccessibility = false
     /// Whether the gap for the chat field is in the Dock.
     private(set) var isInDock: Bool
+    /// The provider Macie is connected to, or nil before one is connected.
+    private(set) var connectedProvider: ProviderKind?
     /// Adds the gap to the Dock.
     @ObservationIgnored private let gapReserver: DockGapReserver
     /// Width the gap is sized for.
     @ObservationIgnored private let fieldWidth: CGFloat
 
     /// Creates the model, reading which steps are already done.
-    init(gapReserver: DockGapReserver, fieldWidth: CGFloat) {
+    init(gapReserver: DockGapReserver, fieldWidth: CGFloat, connectedProvider: ProviderKind?) {
         self.gapReserver = gapReserver
         self.fieldWidth = fieldWidth
         self.isInDock = gapReserver.isGapReserved
+        self.connectedProvider = connectedProvider
     }
 
-    /// Whether both steps are done.
-    var isFinished: Bool { isAccessibilityGranted && isInDock }
+    /// Whether every step is done.
+    var isFinished: Bool { isAccessibilityGranted && isInDock && connectedProvider != nil }
 
     /// Asks for access the first time and reopens System Settings after that; returns true once access arrives.
     func allowAccessibility() async -> Bool {
@@ -44,5 +47,10 @@ final class SetupModel {
     func addToDock() {
         gapReserver.reserveGap(width: fieldWidth)
         isInDock = true
+    }
+
+    /// Records that `provider` was checked and saved on the Connect screen.
+    func modelDidConnect(_ provider: ProviderKind) {
+        connectedProvider = provider
     }
 }

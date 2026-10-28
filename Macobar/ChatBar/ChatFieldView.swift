@@ -6,6 +6,8 @@ struct ChatFieldView: View {
     @Bindable var model: ChatBarModel
     /// Hands keyboard focus back to the app the user came from.
     let onLeave: () -> Void
+    /// Opens the Connect screen to pick a different model.
+    let onChangeModel: () -> Void
     /// Removes macobar from the Dock and quits.
     let onQuit: () -> Void
     /// Whether the text field has keyboard focus.
@@ -35,7 +37,11 @@ struct ChatFieldView: View {
         .contentShape(Capsule())
         .onTapGesture { isFocused = true }
         .onExitCommand(perform: handleEscape)
-        .contextMenu { Button("Quit macobar", action: onQuit) }
+        .contextMenu {
+            Button("Change Model…", action: onChangeModel)
+            Divider()
+            Button("Quit macobar", action: onQuit)
+        }
         .animation(ChatBarStyle.settle, value: model.draft.isEmpty)
         .animation(ChatBarStyle.settle, value: isActive)
     }

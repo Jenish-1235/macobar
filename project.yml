@@ -44,6 +44,8 @@ targets:
       - Macobar/Providers/ProviderKind.swift
       - Macobar/Providers/ProviderAccount.swift
       - Macobar/Providers/ProviderEndpoint.swift
+      - path: Macobar/ModelClient
+        excludes: ["README.md"]
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES

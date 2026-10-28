@@ -1,11 +1,11 @@
 import Foundation
 
 /// Remembers which provider is active (in preferences) and each provider's credential (in the Keychain).
-struct ProviderAccountStore {
+struct ProviderAccountStore: Sendable {
     /// Preferences key holding the active account.
     private static let activeAccountKey = "activeProviderAccount"
-    /// Where the non-secret account details live.
-    private let defaults: UserDefaults
+    /// Where the non-secret account details live; `UserDefaults` is thread-safe but not marked `Sendable`.
+    nonisolated(unsafe) private let defaults: UserDefaults
     /// Where credentials live.
     private let keychain: KeychainStore
 

@@ -11,13 +11,14 @@ make run    # generate the project, build, and launch
 make test   # run the logic tests
 ```
 
-On first launch a setup window walks through two steps: allowing **Accessibility** access (macobar needs it to read where the Dock is), and adding an empty gap right after Finder, which restarts the Dock once. The chat field sits in that gap.
-Right-click the field → **Quit macobar** to remove the gap and quit. If macobar is deleted without quitting, drag the empty spacers out of the Dock.
+On first launch a setup window walks through three steps: allowing **Accessibility** access (macobar needs it to read where the Dock is), adding an empty gap right after Finder (the Dock restarts once; the chat field sits in that gap), and connecting a model with your own API key. Keys are kept in your Keychain and sent only to that provider.
+Right-click the field → **Change Model…** to switch providers, or **Quit macobar**. The gap is there only while macobar runs: any quit removes it, and the next launch puts it back. After a force quit or crash, drag the empty spacers out of the Dock, or launch and quit macobar once.
 
 ## How it works
 1. `Setup/` asks for permission and has `Dock/` add spacer tiles after Finder; `Dock/` then reads their on-screen frame through Accessibility.
 2. `ChatBar/` pins a transparent panel with the text field exactly over that gap, and a reply sheet just above the Dock.
-3. `App/` wires the modules together. Replies come from a placeholder until the agent lands.
+3. `ModelClient/` streams replies from the provider saved in `Providers/`.
+4. `App/` wires the modules together.
 
 ## Modules
 | Folder | Job |
@@ -25,8 +26,9 @@ Right-click the field → **Quit macobar** to remove the gap and quit. If macoba
 | `Macobar/App` | Entry point and wiring; the only place concrete types meet |
 | `Macobar/Dock` | Reserves the gap in the Dock and reports where it is |
 | `Macobar/ChatBar` | The field in the Dock and the reply sheet above it |
-| `Macobar/Setup` | The one-screen setup window (Accessibility + Dock gap) |
+| `Macobar/Setup` | The one-screen setup window and the Connect screen for choosing a model |
 | `Macobar/Providers` | Model providers, their endpoints, and credentials in the Keychain |
+| `Macobar/ModelClient` | Streams replies from the provider in its API format |
 | `Macobar/Permissions` | Checks and requests Accessibility access |
 | `Macobar/Brand` | Macie, the character shared by every screen |
 | `MacobarTests` | Logic tests for pure code (no app launch) |

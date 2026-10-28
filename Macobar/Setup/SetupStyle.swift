@@ -16,14 +16,24 @@ enum SetupStyle {
     static let ink = charcoal
 
     /// Fixed size of the setup window.
-    static let windowSize = CGSize(width: 720, height: 640)
+    static let windowSize = CGSize(width: 720, height: 716)
     /// Space between the window edge and the content.
     static let margin: CGFloat = 56
+    /// Width of the Connect screen.
+    static let connectWidth: CGFloat = 600
+    /// Space between the Connect screen's edge and its content.
+    static let sheetMargin: CGFloat = 48
+    /// Height of text fields and provider tiles.
+    static let fieldHeight: CGFloat = 38
+    /// Corner radius of text fields and provider tiles.
+    static let fieldCornerRadius: CGFloat = 10
 
     /// The lowercase wordmark next to Macie.
     static let wordmarkFont = Font.system(size: 14, weight: .semibold)
     /// The one large serif headline.
     static let displayFont = Font.system(size: 44, weight: .regular, design: .serif)
+    /// The Connect screen's serif headline.
+    static let titleFont = Font.system(size: 32, weight: .regular, design: .serif)
     /// The line under the headline.
     static let ledeFont = Font.system(size: 15)
     /// Step numbers, set as serif italics.
@@ -32,6 +42,8 @@ enum SetupStyle {
     static let stepTitleFont = Font.system(size: 14, weight: .medium)
     /// Step explanations and quiet status text.
     static let detailFont = Font.system(size: 12.5)
+    /// Text typed into fields.
+    static let fieldFont = Font.system(size: 13)
     /// Button labels.
     static let buttonFont = Font.system(size: 13, weight: .medium)
     /// Placeholder text in the miniature chat field.

@@ -1,7 +1,8 @@
 import CoreFoundation
 import CoreGraphics
+import Foundation
 
-/// Keeps a run of spacer tiles right after Finder for the chat bar, and removes it on quit.
+/// Keeps a run of spacer tiles right after Finder for the chat bar while macobar runs.
 struct DockGapReserver {
     /// Preferences domain the Dock reads its layout from.
     private static let dockDomain = DockProcess.bundleIdentifier
@@ -11,19 +12,28 @@ struct DockGapReserver {
     private static let tileSizeKey = "tilesize"
     /// Icon size macOS uses when the user never changed it.
     private static let defaultTileSize: CGFloat = 48
+    /// macobar's own preference recording that the user added it to the Dock.
+    private static let wasAddedKey = "addedToDock"
 
     /// Whether the Dock already has the gap.
     var isGapReserved: Bool {
         DockTiles.leadingSpacerCount(in: currentTiles() ?? []) > 0
     }
 
-    /// Makes the gap wide enough for `width` points.
+    /// Whether the user has added macobar to the Dock, so the gap is restored on every launch.
+    var wasAddedByUser: Bool {
+        UserDefaults.standard.bool(forKey: Self.wasAddedKey)
+    }
+
+    /// Makes the gap wide enough for `width` points and remembers that the user wants it.
     func reserveGap(width: CGFloat) {
+        UserDefaults.standard.set(true, forKey: Self.wasAddedKey)
         setLeadingSpacers(count: Int((width / tileSize()).rounded(.up)))
     }
 
-    /// Removes the gap, returning the Dock to how the user had it.
+    /// Removes the gap, returning the Dock to how the user had it; never touches spacers macobar didn't add.
     func releaseGap() {
+        guard wasAddedByUser else { return }
         setLeadingSpacers(count: 0)
     }
 

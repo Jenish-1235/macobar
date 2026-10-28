@@ -9,8 +9,8 @@ final class SetupWindow: NSObject, NSWindowDelegate {
     /// Setup state, checked when the window closes.
     private let model: SetupModel
 
-    /// Builds the window around `model`.
-    init(model: SetupModel) {
+    /// Builds the window around `model`; `onConnectModel` receives the window to attach the Connect sheet to.
+    init(model: SetupModel, onConnectModel: @escaping (NSWindow) -> Void) {
         self.model = model
         window = NSWindow(
             contentRect: CGRect(origin: .zero, size: SetupStyle.windowSize),
@@ -31,6 +31,10 @@ final class SetupWindow: NSObject, NSWindowDelegate {
         window.delegate = self
         window.contentView = NSHostingView(rootView: SetupView(
             model: model,
+            onConnectModel: { [weak self] in
+                guard let self else { return }
+                onConnectModel(window)
+            },
             onFinish: { [weak self] in self?.window.close() }
         ))
     }
